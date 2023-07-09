@@ -15,9 +15,9 @@ namespace MovieTagApp.Application.Services
 
     public class ParserService : IParserService
     {
-        public async Task<List<string>> GetTagsByMovieNameAsync(string movieName)
+        public async Task<List<string>> GetTagsByMovieNameAsync(string movieNameEng)
         {
-            var moviewUrl = await GetMovieUrlAsync(movieName);
+            var moviewUrl = await GetMovieUrlAsync(movieNameEng);
             if (string.IsNullOrEmpty(moviewUrl))
             {
                  

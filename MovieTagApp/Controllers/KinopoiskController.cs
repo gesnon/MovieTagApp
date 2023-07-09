@@ -12,7 +12,7 @@ namespace MovieTagApp.Controllers
             this._kinopoiskService = _kinopoiskService;
         }
 
-        [HttpGet("{name}")]
+        [HttpGet("{id}")]
         public async Task GetAsync(int id)
         {
             await _kinopoiskService.GetMovieFromKinopoisk(id);

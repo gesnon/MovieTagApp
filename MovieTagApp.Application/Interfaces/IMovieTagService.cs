@@ -9,6 +9,8 @@ namespace MovieTagApp.Application.Interfaces
 {
     public interface IMovieTagService
     {
-        public Task<int> CreateAsync(MovieTagDTO DTO);
+        public Task<int> CreateAsync(MovieTagDTO dto);
+
+        public Task AddTagsToMovieAsync(int movieId);
     }
 }

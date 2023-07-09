@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MovieTagApp.Application.Models.Movies;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,7 @@ namespace MovieTagApp.Application.Interfaces
 {
     public interface IMovieService
     {
+        public Task<int> CreateMovieWithKinopoiskAPIAsync(int kinopoiskId);
+        public Task<MovieGetDTO> GetMovieDTOAsync(int id);
     }
 }

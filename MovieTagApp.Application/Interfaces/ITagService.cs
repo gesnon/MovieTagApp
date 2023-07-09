@@ -8,5 +8,6 @@ namespace MovieTagApp.Application.Interfaces
 {
     public interface ITagService
     {
+        public Task<int> CreateAsync(string Name);
     }
 }

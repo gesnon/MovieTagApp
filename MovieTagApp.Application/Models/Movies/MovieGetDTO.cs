@@ -15,11 +15,11 @@ namespace MovieTagApp.Application.Models.Movies
         public string NameRu { get; set; }
         public string NameEng { get; set; }
         public string Poster { get; set; }
-        public string Description { get; set; }
-        public List<MovieTagGetDTO> MovieTagsDTOs { get; set; }
+        public string Description { get; set; }        
         public decimal Rating { get; set; }
         public string KinopoiskLink { get; set; }
 
+        public List<MovieTagPreviewDTO> MovieTagsDTOs { get; set; }
         public void Mapping(Profile profile)
         {
             profile.CreateMap<Movie, MovieGetDTO>()

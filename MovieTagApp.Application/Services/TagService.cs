@@ -23,6 +23,16 @@ namespace MovieTagApp.Application.Services
             _context = context;
             _mapper = mapper;
         }
+
+        public async Task<int> CreateAsync(string Name)
+        {
+            Tag tag = new Tag { NameEng = Name, NameRu="" };
+            _context.Tags.Add(tag);
+
+            await _context.SaveChangesAsync(CancellationToken.None);
+
+            return tag.Id;
+        }
     }
     
 }

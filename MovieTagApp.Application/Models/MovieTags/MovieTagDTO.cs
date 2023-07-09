@@ -11,11 +11,13 @@ namespace MovieTagApp.Application.Models.MovieTags
     public class MovieTagDTO
     {
         public int MovieId { get; set; }
+        public int TagId { get; set; }
 
         public void Mapping(Profile profile)
         {
             profile.CreateMap<MovieTagDTO,MovieTag>()
-            .ForMember(_ => _.MovieId, opt => opt.MapFrom(i => i.MovieId));
+            .ForMember(_ => _.MovieId, opt => opt.MapFrom(i => i.MovieId))
+            .ForMember(_ => _.TagId, opt => opt.MapFrom(i => i.TagId));
         }
     }
 }
