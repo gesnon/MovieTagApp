@@ -20,7 +20,7 @@ namespace MovieTagApp.Application.Services
             var moviewUrl = await GetMovieUrlAsync(movieNameEng);
             if (string.IsNullOrEmpty(moviewUrl))
             {
-                 
+
             }
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var config = Configuration.Default.WithDefaultLoader();
@@ -32,18 +32,31 @@ namespace MovieTagApp.Application.Services
             return tags;
         }
 
-        private async Task<string> GetMovieUrlAsync(string name)
+        public async Task<string> GetMovieUrlAsync(string name)
         {
+            string saveName = name;
             name = HttpUtility.UrlEncode(name).Replace("+", "%20");
             HttpClient client = new HttpClient();
             var response = await client.PostAsync($"https://bestsimilar.com/site/autocomplete?term={name}", null);
             var data = await response.Content.ReadAsStringAsync();
             var q = JsonSerializer.Deserialize<Autocomplete>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+            if(q.Movie.Length == 0)
+            {
+                return null;
+            }
+
+            string nameFromParser = q.Movie[0].Label.Substring(0, q.Movie[0].Label.LastIndexOf(' '));
+
+            if (nameFromParser != saveName)
+            {
+                return null;
+            }
+
             return q?.Movie?.FirstOrDefault()?.Url;
         }
 
-        
+
     }
 
     public class Autocomplete

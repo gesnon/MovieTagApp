@@ -11,5 +11,6 @@ namespace MovieTagApp.Application.Interfaces
     {
         public Task<int> CreateMovieWithKinopoiskAPIAsync(int kinopoiskId);
         public Task<MovieGetDTO> GetMovieDTOAsync(int id);
+        public Task<List<MovieGetDTO>> GetMovieListAsync(List<int> tagsIds);
     }
 }

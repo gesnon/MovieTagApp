@@ -15,6 +15,6 @@ namespace MovieTagApp.Application.Models.Movies
         public int Year { get; set; }
         public Dictionary<string, string> Poster { get; set; }   
         public string AlternativeName { get; set; }
-        
+        public List<MovieAlternativNameDTO> Names { get; set; }
     }
 }

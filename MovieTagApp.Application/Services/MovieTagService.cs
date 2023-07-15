@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MovieTagApp.Application.Common.Exceptions;
 using MovieTagApp.Application.Interfaces;
 using MovieTagApp.Application.Models.MovieTags;
 using MovieTagApp.Domain.Entities;
@@ -36,12 +37,31 @@ namespace MovieTagApp.Application.Services
             Movie movie = _context.Movies.FirstOrDefault(x => x.Id == movieId);
             if (movie == null)
             {
-                throw new Exception("Фильм не найден");
+                throw new NotFoundException("Фильм не найден");
             }
+
+            List<Tag> tagsFromBase = _context.Tags.ToList();            
+
+            List<string> tagsToString = tagsFromBase.Select(_=>_.NameEng).ToList();
+
             List<string> tags = await _parserService.GetTagsByMovieNameAsync(movie.NameEng);
+            
+            // Здесь происходит проверка на наличие тега в базе, для того чтобы избежать дублирования,
+            // возможно ещё нужно приводить к нижнему регистру
+            
             foreach (string tag in tags)
             {
-                int tagId  = await _tagService.CreateAsync(tag);
+                int tagId=0;
+
+                if (tagsToString.Contains(tag))
+                {
+                   tagId= tagsFromBase.FirstOrDefault(_=>_.NameEng == tag).Id;
+                }
+
+                if (!tagsToString.Contains(tag))
+                {
+                    tagId = await _tagService.CreateAsync(tag);
+                }                
 
                 MovieTagDTO dto = new MovieTagDTO { MovieId = movieId, TagId = tagId };
                 

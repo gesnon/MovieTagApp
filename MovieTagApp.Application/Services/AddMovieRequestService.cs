@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MovieTagApp.Application.Common.Exceptions;
 using MovieTagApp.Application.Interfaces;
 using MovieTagApp.Domain.Entities;
 
@@ -21,7 +22,11 @@ namespace MovieTagApp.Application.Services
         {
             if (_context.AddMovieRequests.FirstOrDefault(_ => _.KpId == Kpid) != null)
             {
-                throw new Exception("Такой фильм уже принят к рассмотрению");
+                throw new AlreadyInDBException("Такой фильм уже принят к рассмотрению");
+            }
+            if (_context.Movies.FirstOrDefault(_ => _.KinopoiskLink == $"https://www.kinopoisk.ru/film/{Kpid}/") !=null)
+            {
+                throw new AlreadyInDBException("Такой фильм уже есть на сайте");
             }
 
             AddMovieRequest request = new AddMovieRequest { KpId = Kpid, DateOfCreation=DateTime.Now };

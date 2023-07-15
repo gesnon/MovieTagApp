@@ -33,7 +33,29 @@ namespace MovieTagApp.Application.Services
                 Rating = r.Rating["kp"].Value
             };
 
-           // List<string> tags = await _parserService.GetTagsByMovieNameAsync(result.NameEng);
+            List<MovieAlternativNameDTO> alternativNames = new List<MovieAlternativNameDTO>();
+
+            foreach (var alternativName in r.Names)
+            {
+                if (alternativName.Language == "GB" || alternativName.Language == "gb" || alternativName.Language == "Gb"
+                    || alternativName.Language == "US" || alternativName.Language == "us" || alternativName.Language == "Us")
+                {
+                    alternativNames.Add(alternativName);
+                }
+            }
+
+            string checkEngname = r.AlternativeName;
+
+            foreach (var alternativName in alternativNames)
+            {
+                string url = await _parserService.GetMovieUrlAsync(alternativName.Name);
+
+                if (!string.IsNullOrEmpty(url))
+                {
+                    checkEngname = alternativName.Name;
+                }
+            }
+            result.NameEng = checkEngname;
 
             return result;
         }
@@ -44,7 +66,7 @@ namespace MovieTagApp.Application.Services
             string selectField = string.Join(" ", selectFields);
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-API-KEY", $"{token}");
-           // var response = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie?selectFields={selectField}&page=1&limit=5&name={name}");
+            // var response = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie?selectFields={selectField}&page=1&limit=5&name={name}");
             var responce2 = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie/{id}");
             var data = await responce2.Content.ReadAsStringAsync();
             var q = JsonSerializer.Deserialize<ResponceBody>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

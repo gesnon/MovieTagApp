@@ -1,4 +1,5 @@
 using MovieTagApp.Application;
+using MovieTagApp.CustomExceptionMiddleware;
 using MovieTagApp.Infrastructure;
 using MovieTagApp.Infrastructure.Persistence;
 
@@ -31,6 +32,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(opt =>
                 opt.AllowAnyOrigin()
                 .AllowAnyMethod()

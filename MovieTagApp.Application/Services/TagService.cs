@@ -33,6 +33,25 @@ namespace MovieTagApp.Application.Services
 
             return tag.Id;
         }
+
+        public async Task<List<TagGetDTO>> GetTagsByNameAsync(string? Name)
+        {
+            var query = _context.Tags.AsQueryable();
+
+            if (!string.IsNullOrEmpty(Name))
+            {
+                query = query.Where(x => x.NameRu.ToLower().Contains(Name.ToLower()));
+            }
+
+            List<TagGetDTO> result = query.Select(_ => new TagGetDTO
+            {
+                Id = _.Id,
+                NameEng = _.NameEng,
+                NameRu = _.NameRu
+            }).ToList();
+
+            return result;
+        }
     }
     
 }
