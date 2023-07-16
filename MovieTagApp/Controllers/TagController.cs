@@ -6,7 +6,7 @@ namespace MovieTagApp.Controllers
 {
     public class TagController: BaseController
     {
-        //GetTagsByNameAsync
+        
 
         private readonly ITagService _tagService;
 
@@ -15,8 +15,8 @@ namespace MovieTagApp.Controllers
             this._tagService = _tagService;
         }
 
-        [HttpGet("GetTagsByName/{Name}")]
-        public async Task<ActionResult> GetTagsByName(string? Name)
+        [HttpGet]
+        public async Task<ActionResult> GetTagsByName([FromQuery]string? Name)
         {
             return Ok(await _tagService.GetTagsByNameAsync(Name));
         }

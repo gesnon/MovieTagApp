@@ -10,40 +10,35 @@ using System.Text;
 using System.Threading.Tasks;
 using MovieTagApp.Application.Models.MovieTags;
 using MovieTagApp.Application.Common.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace MovieTagApp.Application.Services
 {
-    public class MovieService : BaseService
-        <Movie, MovieDTO, MovieGetDTO>, IMovieService
+    public class MovieService : IMovieService
     {
         private readonly IMovieTagAppContext _context;
         private readonly IMapper _mapper;
         private readonly IKinopoiskService _kinopoiskService;
-
+        private readonly IMovieTagService _movieTagService;
         public MovieService(
             IMovieTagAppContext context,
             IMapper mapper,
-            IKinopoiskService kinopoiskService) : base(context, mapper)
+            IKinopoiskService kinopoiskService,
+            IMovieTagService movieTagService) 
         {
             _context = context;
             _mapper = mapper;
             _kinopoiskService = kinopoiskService;
+            _movieTagService = movieTagService;
         }
 
         public async Task<int> CreateMovieWithKinopoiskAPIAsync(int KinopoiskId)
         {
             MovieDTO dto = await _kinopoiskService.GetMovieFromKinopoisk(KinopoiskId);
-
-            // Проверка на наличие фильма в базе
-            Movie checkMovie = _context.Movies.FirstOrDefault(_ => _.NameRu == dto.NameRu);
-
-            // На всякий случай проверяю по названию и по ссылке на кинопоиск
-            if (checkMovie != null
-                || _context.Movies.FirstOrDefault(_ => _.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/") != null)
+            if (_context.Movies.Any(_=>_.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/"))
             {
-                throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id {checkMovie.Id}");
+                throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
             }
-
 
             Movie movie = new Movie
             {
@@ -53,9 +48,10 @@ namespace MovieTagApp.Application.Services
                 NameRu = dto.NameRu,
                 Poster = dto.Poster,
                 Rating = dto.Rating,
-                MovieTags = new List<MovieTag>()
+                MovieTags = await _movieTagService.AddTagsToMovieAsync(dto.NameEng)
             };
             _context.Movies.Add(movie);
+
 
             await _context.SaveChangesAsync(CancellationToken.None);
 
@@ -74,28 +70,26 @@ namespace MovieTagApp.Application.Services
             {
                 Description = movie.Description,
                 KinopoiskLink = movie.KinopoiskLink,
-                Id = movie.Id,
-                MovieTagsDTOs = new List<MovieTagPreviewDTO>(),
+                Id = movie.Id,                
                 NameEng = movie.NameEng,
                 NameRu = movie.NameRu,
                 Poster = movie.Poster,
                 Rating = movie.Rating
             };
-            List<MovieTag> movieTags = _context.MovieTags.Where(_ => _.MovieId == id).ToList();
 
-            List<Tag> tags = movieTags.Select(_ => _context.Tags.FirstOrDefault(i => i.Id == _.TagId)).ToList();
-
-            List<MovieTagPreviewDTO> resultTags = tags
-                .Select(_ => new MovieTagPreviewDTO { Id = _.Id, NameEng = _.NameEng, NameRu = _.NameRu }).ToList();
-
-            result.MovieTagsDTOs = resultTags;
+            result.MovieTagsDTOs = _context.MovieTags
+                .Include(_=>_.Tag)
+                .Where(_=>_.MovieId == id)
+                .Select(mt => new MovieTagPreviewDTO { Id= mt.Id, NameEng=mt.Tag.NameEng, NameRu=mt.Tag.NameRu })
+                .ToList();
+             
 
             return result;
         }
 
         public async Task<List<MovieGetDTO>> GetMovieListAsync(List<int> tags)
         {
-            List<int> movies = _context.Movies.AsQueryable().Select(_ => _.Id).ToList(); 
+            List<int> movies = _context.Movies.Select(_ => _.Id).ToList(); 
             if (tags.Count != 0)
             {
                 movies = _context.MovieTags.Where(mt => tags.Contains(mt.TagId))

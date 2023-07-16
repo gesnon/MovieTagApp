@@ -1,4 +1,5 @@
 ﻿using MovieTagApp.Application.Models.MovieTags;
+using MovieTagApp.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +9,7 @@ using System.Threading.Tasks;
 namespace MovieTagApp.Application.Interfaces
 {
     public interface IMovieTagService
-    {
-        public Task<int> CreateAsync(MovieTagDTO dto);
-
-        public Task AddTagsToMovieAsync(int movieId);
+    {       
+        public Task<List<MovieTag>> AddTagsToMovieAsync(string name);
     }
 }

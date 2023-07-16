@@ -11,10 +11,10 @@ namespace MovieTagApp.Controllers
             this._movieTagService = _movieTagService;
         }
 
-        [HttpPost("{movieId}")]
-        public async Task AddTagsToMovieAsync(int movieId)
+        [HttpPost("{movieName}")]
+        public async Task AddTagsToMovieAsync(string movieName)
         {
-            await _movieTagService.AddTagsToMovieAsync(movieId);
+            await _movieTagService.AddTagsToMovieAsync(movieName);
         }
     }
 }

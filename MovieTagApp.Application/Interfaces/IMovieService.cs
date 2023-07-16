@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MovieTagApp.Application.Interfaces
 {
-    public interface IMovieService
+    public interface IMovieService 
     {
         public Task<int> CreateMovieWithKinopoiskAPIAsync(int kinopoiskId);
         public Task<MovieGetDTO> GetMovieDTOAsync(int id);

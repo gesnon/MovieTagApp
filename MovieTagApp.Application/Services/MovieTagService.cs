@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 
 namespace MovieTagApp.Application.Services
 {
-    public class MovieTagService : BaseService
-        <MovieTag, MovieTagDTO, MovieTagGetDTO>, IMovieTagService
+    public class MovieTagService : IMovieTagService
     {
         private readonly IMovieTagAppContext _context;
         private readonly IMapper _mapper;
@@ -23,7 +22,7 @@ namespace MovieTagApp.Application.Services
             IMovieTagAppContext context,
             IMapper mapper, 
             IParserService parserService,
-            ITagService tagService) : base(context, mapper)
+            ITagService tagService)
         {
             _context = context;
             _mapper = mapper;
@@ -31,31 +30,27 @@ namespace MovieTagApp.Application.Services
             _tagService = tagService;
         }
 
-        public async Task AddTagsToMovieAsync(int movieId)
-        {
-            
-            Movie movie = _context.Movies.FirstOrDefault(x => x.Id == movieId);
-            if (movie == null)
-            {
-                throw new NotFoundException("Фильм не найден");
-            }
+        public async Task<List<MovieTag>> AddTagsToMovieAsync(string movieName)
+        {           
 
             List<Tag> tagsFromBase = _context.Tags.ToList();            
 
-            List<string> tagsToString = tagsFromBase.Select(_=>_.NameEng).ToList();
+            List<string> tagsToString = _context.Tags.Select(_=>_.NameEng).ToList();
 
-            List<string> tags = await _parserService.GetTagsByMovieNameAsync(movie.NameEng);
+            List<string> tags = await _parserService.GetTagsByMovieNameAsync(movieName);
             
             // Здесь происходит проверка на наличие тега в базе, для того чтобы избежать дублирования,
             // возможно ещё нужно приводить к нижнему регистру
             
+            List<MovieTag> tagsFromMovie = new List<MovieTag>();
+
             foreach (string tag in tags)
             {
                 int tagId=0;
 
                 if (tagsToString.Contains(tag))
                 {
-                   tagId= tagsFromBase.FirstOrDefault(_=>_.NameEng == tag).Id;
+                   tagId= tagsFromBase.FirstOrDefault(_=>_.NameEng.ToLower() == tag.ToLower()).Id;
                 }
 
                 if (!tagsToString.Contains(tag))
@@ -63,21 +58,12 @@ namespace MovieTagApp.Application.Services
                     tagId = await _tagService.CreateAsync(tag);
                 }                
 
-                MovieTagDTO dto = new MovieTagDTO { MovieId = movieId, TagId = tagId };
-                
-                await CreateAsync(dto);                
+                tagsFromMovie.Add(new MovieTag { TagId=tagId });                
+                             
             }
 
+            return tagsFromMovie;
         }
-        public async Task<int> CreateAsync(MovieTagDTO dto)
-        {
-                MovieTag movieTag = new MovieTag { MovieId=dto.MovieId, TagId = dto.TagId };
-
-            _context.MovieTags.Add(movieTag);
-
-            await _context.SaveChangesAsync(CancellationToken.None);
-
-            return movieTag.Id;
-        }
+        
     }
 }

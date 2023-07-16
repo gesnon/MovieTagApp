@@ -18,33 +18,39 @@ namespace MovieTagApp.Application.Services
             this._parserService = _parserService;
         }
 
+        // Надо перенести токен в appsettings
         string token = "Z4JX270-H6S448M-NEMBZTP-7N0HBD5";
+
+        string [] ValidLanguages = { "us", "gb" };
+
         public async Task<MovieDTO> GetMovieFromKinopoisk(int id)
         {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("X-API-KEY", $"{token}");
+            var responce = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie/{id}");
+            var data = await responce.Content.ReadAsStringAsync();
 
-            GetByIdResponceDTO r = await GetMovieUrlByIdAsync(id);
-            MovieDTO result = new MovieDTO
+            if (!responce.IsSuccessStatusCode)
             {
-                Description = r.Description,
-                KinopoiskLink = $"https://www.kinopoisk.ru/film/{r.Id}/",
-                NameEng = r.AlternativeName,
-                NameRu = r.Name,
-                Poster = r.Poster["url"],
-                Rating = r.Rating["kp"].Value
-            };
-
-            List<MovieAlternativNameDTO> alternativNames = new List<MovieAlternativNameDTO>();
-
-            foreach (var alternativName in r.Names)
-            {
-                if (alternativName.Language == "GB" || alternativName.Language == "gb" || alternativName.Language == "Gb"
-                    || alternativName.Language == "US" || alternativName.Language == "us" || alternativName.Language == "Us")
-                {
-                    alternativNames.Add(alternativName);
-                }
+                throw new Exception("Кинопоиск не вернул данные");
             }
 
-            string checkEngname = r.AlternativeName;
+            var movie = JsonSerializer.Deserialize<GetByIdResponceDTO>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                        
+            MovieDTO result = new MovieDTO
+            {
+                Description = movie.Description,
+                KinopoiskLink = $"https://www.kinopoisk.ru/film/{movie.Id}/",
+                NameEng = movie.AlternativeName,
+                NameRu = movie.Name,
+                Poster = movie.Poster["url"],
+                Rating = movie.Rating["kp"].Value
+            };
+
+            List<MovieAlternativNameDTO> alternativNames = movie.Names
+                .Where(_=>ValidLanguages.Contains(_.Language, StringComparer.OrdinalIgnoreCase)).ToList();     
+ 
 
             foreach (var alternativName in alternativNames)
             {
@@ -52,39 +58,13 @@ namespace MovieTagApp.Application.Services
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    checkEngname = alternativName.Name;
+                    result.NameEng = alternativName.Name;
+                    break;
                 }
-            }
-            result.NameEng = checkEngname;
+            }            
 
             return result;
-        }
+        }        
 
-        private async Task<ResponceBody> GetMovieUrlAsync(int id)
-        {
-            var selectFields = new string[] { "rating", "id", "name", "description", "year", "poster", "alternativeName" };
-            string selectField = string.Join(" ", selectFields);
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("X-API-KEY", $"{token}");
-            // var response = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie?selectFields={selectField}&page=1&limit=5&name={name}");
-            var responce2 = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie/{id}");
-            var data = await responce2.Content.ReadAsStringAsync();
-            var q = JsonSerializer.Deserialize<ResponceBody>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            return q;
-        }
-
-        private async Task<GetByIdResponceDTO> GetMovieUrlByIdAsync(int id)
-        {
-            var selectFields = new string[] { "rating", "id", "name", "description", "year", "poster", "alternativeName" };
-            string selectField = string.Join(" ", selectFields);
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("X-API-KEY", $"{token}");
-            var responce = await client.GetAsync($"https://api.kinopoisk.dev/v1.3/movie/{id}");
-            var data = await responce.Content.ReadAsStringAsync();
-            var q = JsonSerializer.Deserialize<GetByIdResponceDTO>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            return q;
-        }
     }
 }

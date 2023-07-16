@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MovieTagApp.Application.Common.Mappings;
 using MovieTagApp.Application.Models.MovieTags;
 using MovieTagApp.Domain.Entities;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MovieTagApp.Application.Models.Movies
 {
-    public class MovieGetDTO
+    public class MovieGetDTO:IMapFrom<Movie>
     {
         public int Id { get; set; }
         public string NameRu { get; set; }

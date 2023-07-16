@@ -48,12 +48,12 @@ namespace MovieTagApp.Application.Services
 
             string nameFromParser = q.Movie[0].Label.Substring(0, q.Movie[0].Label.LastIndexOf(' '));
 
-            if (nameFromParser != saveName)
+            if (!nameFromParser.Equals(saveName, StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
 
-            return q?.Movie?.FirstOrDefault()?.Url;
+            return q.Movie.FirstOrDefault()?.Url;
         }
 
 

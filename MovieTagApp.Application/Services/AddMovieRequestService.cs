@@ -8,23 +8,21 @@ namespace MovieTagApp.Application.Services
     public class AddMovieRequestService : IAddMovieRequestService
     {
         private readonly IMovieTagAppContext _context;
-        private readonly IMapper _mapper;
+        
 
         public AddMovieRequestService(
-            IMovieTagAppContext context,
-            IMapper mapper) 
+            IMovieTagAppContext context) 
         {
-            this._context = context;
-            this._mapper = mapper;
+            this._context = context;            
         }
 
         public async Task CreateAsync(int Kpid)
         {
-            if (_context.AddMovieRequests.FirstOrDefault(_ => _.KpId == Kpid) != null)
+            if (_context.AddMovieRequests.Any(_ => _.KpId == Kpid))
             {
                 throw new AlreadyInDBException("Такой фильм уже принят к рассмотрению");
             }
-            if (_context.Movies.FirstOrDefault(_ => _.KinopoiskLink == $"https://www.kinopoisk.ru/film/{Kpid}/") !=null)
+            if (_context.Movies.Any(_ => _.KinopoiskLink == $"https://www.kinopoisk.ru/film/{Kpid}/"))
             {
                 throw new AlreadyInDBException("Такой фильм уже есть на сайте");
             }

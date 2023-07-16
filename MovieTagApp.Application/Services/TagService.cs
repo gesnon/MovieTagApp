@@ -10,15 +10,14 @@ using System.Threading.Tasks;
 
 namespace MovieTagApp.Application.Services
 {
-    public class TagService: BaseService
-        <Tag, TagDTO, TagGetDTO>, ITagService
+    public class TagService: ITagService
     {
         private readonly IMovieTagAppContext _context;
         private readonly IMapper _mapper;
 
         public TagService(
             IMovieTagAppContext context,
-            IMapper mapper) : base(context, mapper)
+            IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -26,6 +25,8 @@ namespace MovieTagApp.Application.Services
 
         public async Task<int> CreateAsync(string Name)
         {
+            Name = Name.Trim('.').Trim();
+            
             Tag tag = new Tag { NameEng = Name, NameRu="" };
             _context.Tags.Add(tag);
 
