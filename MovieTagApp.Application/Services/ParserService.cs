@@ -43,7 +43,7 @@ namespace MovieTagApp.Application.Services
             string urlAddress = $"https://bestsimilar.com{moviewUrl}";
             using var doc = await context.OpenAsync(urlAddress);
             var tagsRaw = doc.QuerySelector("div.attr-tag-group-1 span.value").Text();
-            var tags = tagsRaw.Split(',').Select(x => x.Trim()).ToList();
+            var tags = tagsRaw.Split(',').Select(x => x.Trim('.').Trim()).ToList();
             
             result.Tags = tags;
             
@@ -87,12 +87,14 @@ namespace MovieTagApp.Application.Services
 
         public async Task<string> GetTitleFromIMDB(string IMDBId)
         {
+            
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var config = Configuration.Default.WithDefaultLoader();
             DefaultHttpRequester httpRequester = (DefaultHttpRequester)config.Services.First(_=> _.GetType() == typeof(DefaultHttpRequester));
+            httpRequester.Headers.Clear();
             httpRequester.Headers.Add("Accept-Language", "en-US;q=0.8,en;q=0.7");
             using var context = BrowsingContext.New(config);
-            string urlAddress = $"https://www.imdb.com/title/{IMDBId}";
+            string urlAddress = $"https://www.imdb.com/title/{IMDBId}/";
             using var doc = await context.OpenAsync(urlAddress);
             string docTitle = doc.Title;
             var title = doc.QuerySelector(".sc-afe43def-1").Text();

@@ -61,24 +61,24 @@ namespace MovieTagApp.Application.Services
 
 
             // Потом надо убрать поиск имени
-            List<MovieAlternativNameDTO> alternativNames = movie.Names
-                .Where(_=>ValidLanguages.Contains(_.Language, StringComparer.OrdinalIgnoreCase)).ToList();     
+            //List<MovieAlternativNameDTO> alternativNames = movie.Names
+            //    .Where(_=>ValidLanguages.Contains(_.Language, StringComparer.OrdinalIgnoreCase)).ToList();     
 
-            if(alternativNames.Count == 0 && movie.AlternativeName!=null)
-            {
-                alternativNames.Add(new MovieAlternativNameDTO { Name=movie.AlternativeName});
-            }
+            //if(alternativNames.Count == 0 && movie.AlternativeName!=null)
+            //{
+            //    alternativNames.Add(new MovieAlternativNameDTO { Name=movie.AlternativeName});
+            //}
 
-            foreach (var alternativName in alternativNames)
-            {
-                string url = await _parserService.GetMovieUrlAsync(alternativName.Name);
+            //foreach (var alternativName in alternativNames)
+            //{
+            //    string url = await _parserService.GetMovieUrlAsync(alternativName.Name);
 
-                if (!string.IsNullOrEmpty(url))
-                {
-                    result.NameEng = alternativName.Name;
-                    break;
-                }
-            }            
+            //    if (!string.IsNullOrEmpty(url))
+            //    {
+            //        result.NameEng = alternativName.Name;
+            //        break;
+            //    }
+            //}            
 
             
             return result;

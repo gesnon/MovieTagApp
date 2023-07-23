@@ -38,7 +38,7 @@ namespace MovieTagApp.Application.Services
             MovieDTO dto = await _kinopoiskService.GetMovieFromKinopoisk(KinopoiskId);
             if (_context.Movies.Any(_=>_.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/"))
             {
-               // throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
+               throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
             }           
 
             // Потом объеденю в один if
