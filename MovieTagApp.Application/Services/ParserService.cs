@@ -1,6 +1,9 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Io;
+using MovieTagApp.Application.Common.Exceptions;
 using MovieTagApp.Application.Interfaces;
+using MovieTagApp.Application.Models.Tags;
 using MovieTagApp.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,12 +18,24 @@ namespace MovieTagApp.Application.Services
 
     public class ParserService : IParserService
     {
-        public async Task<List<string>> GetTagsByMovieNameAsync(string movieNameEng)
+        private readonly IMovieTagAppContext _context;
+        public ParserService(
+            IMovieTagAppContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<TagRequest> GetTagsByMovieNameAsync(string movieNameEng)
         {
             var moviewUrl = await GetMovieUrlAsync(movieNameEng);
+
+            TagRequest result = new TagRequest {Tags=new List<string>()};
+
             if (string.IsNullOrEmpty(moviewUrl))
             {
+                result.Status = Status.MovieNotFound;
 
+                return result;
             }
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var config = Configuration.Default.WithDefaultLoader();
@@ -29,12 +44,16 @@ namespace MovieTagApp.Application.Services
             using var doc = await context.OpenAsync(urlAddress);
             var tagsRaw = doc.QuerySelector("div.attr-tag-group-1 span.value").Text();
             var tags = tagsRaw.Split(',').Select(x => x.Trim()).ToList();
-            return tags;
+            
+            result.Tags = tags;
+            
+            return result;
         }
 
         public async Task<string> GetMovieUrlAsync(string name)
         {
             string saveName = name;
+
             name = HttpUtility.UrlEncode(name).Replace("+", "%20");
             HttpClient client = new HttpClient();
             var response = await client.PostAsync($"https://bestsimilar.com/site/autocomplete?term={name}", null);
@@ -46,16 +65,40 @@ namespace MovieTagApp.Application.Services
                 return null;
             }
 
-            string nameFromParser = q.Movie[0].Label.Substring(0, q.Movie[0].Label.LastIndexOf(' '));
-
-            if (!nameFromParser.Equals(saveName, StringComparison.OrdinalIgnoreCase))
+            if (q.Movie.Length == 1)
             {
-                return null;
+                return q.Movie.FirstOrDefault()?.Url;
+
             }
 
-            return q.Movie.FirstOrDefault()?.Url;
+            for (int i = 0; i < q.Movie.Length; i++)
+            {
+                string nameFromParser = q.Movie[i].Label.Substring(0, q.Movie[i].Label.LastIndexOf(' '));
+
+                if (nameFromParser.Equals(saveName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return q.Movie[i].Url;
+                }
+
+            }          
+
+            return null;
         }
 
+        public async Task<string> GetTitleFromIMDB(string IMDBId)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var config = Configuration.Default.WithDefaultLoader();
+            DefaultHttpRequester httpRequester = (DefaultHttpRequester)config.Services.First(_=> _.GetType() == typeof(DefaultHttpRequester));
+            httpRequester.Headers.Add("Accept-Language", "en-US;q=0.8,en;q=0.7");
+            using var context = BrowsingContext.New(config);
+            string urlAddress = $"https://www.imdb.com/title/{IMDBId}";
+            using var doc = await context.OpenAsync(urlAddress);
+            string docTitle = doc.Title;
+            var title = doc.QuerySelector(".sc-afe43def-1").Text();
+            
+            return title;           
+        }
 
     }
 

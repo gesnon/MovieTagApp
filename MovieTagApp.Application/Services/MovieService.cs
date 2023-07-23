@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MovieTagApp.Application.Models.MovieTags;
 using MovieTagApp.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using MovieTagApp.Application.Models.Tags;
 
 namespace MovieTagApp.Application.Services
 {
@@ -37,7 +38,36 @@ namespace MovieTagApp.Application.Services
             MovieDTO dto = await _kinopoiskService.GetMovieFromKinopoisk(KinopoiskId);
             if (_context.Movies.Any(_=>_.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/"))
             {
-                throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
+               // throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
+            }           
+
+            // Потом объеденю в один if
+            if (string.IsNullOrEmpty(dto.NameEng))
+            {
+
+                if (_context.MovieWithNoTags.FirstOrDefault(_ => _.KpId == KinopoiskId) != null)
+                {
+                    throw new AlreadyInDBException("Такой фильм уже есть в БД и скоро будет обработан вручную");
+                }
+
+                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId = KinopoiskId });
+                await _context.SaveChangesAsync(CancellationToken.None);
+                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную"); 
+                
+            }
+
+            MovieTagRequest movieTagRequest = await _movieTagService.AddTagsToMovieAsync(dto.NameEng);
+
+            if (movieTagRequest.Status == Status.MovieNotFound)
+            {
+                if (_context.MovieWithNoTags.FirstOrDefault(_ => _.KpId == KinopoiskId) != null)
+                {
+                    throw new AlreadyInDBException("Такой фильм уже есть в БД и скоро будет обработан вручную");
+                }
+
+                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId = KinopoiskId });
+                await _context.SaveChangesAsync(CancellationToken.None);
+                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
             }
 
             Movie movie = new Movie
@@ -48,7 +78,7 @@ namespace MovieTagApp.Application.Services
                 NameRu = dto.NameRu,
                 Poster = dto.Poster,
                 Rating = dto.Rating,
-                MovieTags = await _movieTagService.AddTagsToMovieAsync(dto.NameEng)
+                MovieTags = movieTagRequest.MovieTags
             };
             _context.Movies.Add(movie);
 

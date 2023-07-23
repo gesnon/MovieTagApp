@@ -18,6 +18,7 @@ namespace MovieTagApp.Infrastructure.Persistence
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Movie> Movies { get; set; }
         public DbSet<MovieTag> MovieTags { get; set; }
+        public DbSet<MovieWithNoTags> MovieWithNoTags { get; set; }
         public DbSet<AddMovieRequest> AddMovieRequests { get; set; }       
 
 

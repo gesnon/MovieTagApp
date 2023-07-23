@@ -2,6 +2,7 @@
 using MovieTagApp.Application.Common.Exceptions;
 using MovieTagApp.Application.Interfaces;
 using MovieTagApp.Application.Models.MovieTags;
+using MovieTagApp.Application.Models.Tags;
 using MovieTagApp.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -30,14 +31,24 @@ namespace MovieTagApp.Application.Services
             _tagService = tagService;
         }
 
-        public async Task<List<MovieTag>> AddTagsToMovieAsync(string movieName)
-        {           
+        public async Task<MovieTagRequest> AddTagsToMovieAsync(string movieName)
+        {              
+            MovieTagRequest result = new MovieTagRequest { MovieTags=new List<MovieTag>()};
 
             List<Tag> tagsFromBase = _context.Tags.ToList();            
 
             List<string> tagsToString = _context.Tags.Select(_=>_.NameEng).ToList();
 
-            List<string> tags = await _parserService.GetTagsByMovieNameAsync(movieName);
+            TagRequest tagRequest = await _parserService.GetTagsByMovieNameAsync(movieName);
+
+            List<string> tags = tagRequest.Tags;
+
+            result.Status = tagRequest.Status;
+
+            if (tagRequest.Status == Status.MovieNotFound)
+            {
+                return result;
+            }
             
             // Здесь происходит проверка на наличие тега в базе, для того чтобы избежать дублирования,
             // возможно ещё нужно приводить к нижнему регистру
@@ -61,8 +72,9 @@ namespace MovieTagApp.Application.Services
                 tagsFromMovie.Add(new MovieTag { TagId=tagId });                
                              
             }
+            result.MovieTags = tagsFromMovie;
 
-            return tagsFromMovie;
+            return result;
         }
         
     }

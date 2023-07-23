@@ -19,7 +19,7 @@ namespace MovieTagApp.Application.Models.Movies
         public List<MovieTagGetDTO> MovieTagsDTOs { get; set; }
         public decimal Rating { get; set; }
         public string KinopoiskLink { get; set; }
-
+        public string IMDBId { get; set; }
         public void Mapping(Profile profile)
         {
             profile.CreateMap<MovieDTO,Movie>()
@@ -28,7 +28,7 @@ namespace MovieTagApp.Application.Models.Movies
             .ForMember(_ => _.Poster, opt => opt.MapFrom(i => i.Poster))
             .ForMember(_ => _.Description, opt => opt.MapFrom(i => i.Description))
             .ForMember(_ => _.MovieTags, opt => opt.Ignore())
-            .ForMember(_ => _.Rating, opt => opt.MapFrom(i => i.Rating))
+            .ForMember(_ => _.Rating, opt => opt.MapFrom(i => i.Rating))           
             .ForMember(_ => _.KinopoiskLink, opt => opt.MapFrom(i => i.KinopoiskLink));
 
         }

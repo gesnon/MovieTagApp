@@ -16,6 +16,8 @@ namespace MovieTagApp.Application.Interfaces
         public DbSet<MovieTag> MovieTags { get; set; }
         public DbSet<AddMovieRequest> AddMovieRequests { get; set; }
 
+        public DbSet<MovieWithNoTags> MovieWithNoTags { get; set; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;

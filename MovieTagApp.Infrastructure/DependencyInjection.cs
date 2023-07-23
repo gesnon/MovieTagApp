@@ -16,7 +16,7 @@ namespace MovieTagApp.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<MovieTagAppContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IMovieTagAppContext>(provider => provider.GetRequiredService<MovieTagAppContext>());
             //services.AddScoped<IKinopoiskService>(provider => provider.GetRequiredService<IKinopoiskService>());
             services.AddScoped<DbInitializer>();         

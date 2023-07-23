@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace MovieTagApp.Domain.Entities
 {
-    public class Tag:Entity
+    public class MovieWithNoTags: Entity
     {
-        public string NameRu { get; set; }
-        public string NameEng { get; set; }
-        public bool AreUsefull { get; set; }
+        public int KpId { get; set; }
+
     }
 }

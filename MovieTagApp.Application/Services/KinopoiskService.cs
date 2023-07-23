@@ -1,5 +1,7 @@
-﻿using MovieTagApp.Application.Interfaces;
+﻿using MovieTagApp.Application.Common.Exceptions;
+using MovieTagApp.Application.Interfaces;
 using MovieTagApp.Application.Models.Movies;
+using MovieTagApp.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +14,11 @@ namespace MovieTagApp.Application.Services
     public class KinopoiskService : IKinopoiskService
     {
         private readonly IParserService _parserService;
-
-        public KinopoiskService(IParserService _parserService)
+        private readonly IMovieTagAppContext _context;
+        public KinopoiskService(IParserService _parserService, IMovieTagAppContext _context)
         {
             this._parserService = _parserService;
+            this._context = _context;
         }
 
         // Надо перенести токен в appsettings
@@ -35,9 +38,9 @@ namespace MovieTagApp.Application.Services
                 throw new Exception("Кинопоиск не вернул данные");
             }
 
-            var movie = JsonSerializer.Deserialize<GetByIdResponceDTO>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var movie = JsonSerializer.Deserialize<GetByIdResponceDTO>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true,  });
 
-                        
+
             MovieDTO result = new MovieDTO
             {
                 Description = movie.Description,
@@ -45,12 +48,26 @@ namespace MovieTagApp.Application.Services
                 NameEng = movie.AlternativeName,
                 NameRu = movie.Name,
                 Poster = movie.Poster["url"],
-                Rating = movie.Rating["kp"].Value
+                Rating = movie.Rating["kp"].Value,
+                IMDBId = movie.externalId["imdb"].ToString()
+              
             };
 
+            string nameFromOMDB = await _parserService.GetTitleFromIMDB(result.IMDBId);
+
+            result.NameEng = nameFromOMDB;
+
+
+
+
+            // Потом надо убрать поиск имени
             List<MovieAlternativNameDTO> alternativNames = movie.Names
                 .Where(_=>ValidLanguages.Contains(_.Language, StringComparer.OrdinalIgnoreCase)).ToList();     
- 
+
+            if(alternativNames.Count == 0 && movie.AlternativeName!=null)
+            {
+                alternativNames.Add(new MovieAlternativNameDTO { Name=movie.AlternativeName});
+            }
 
             foreach (var alternativName in alternativNames)
             {
@@ -63,6 +80,7 @@ namespace MovieTagApp.Application.Services
                 }
             }            
 
+            
             return result;
         }        
 
