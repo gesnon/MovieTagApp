@@ -43,7 +43,7 @@ namespace MovieTagApp.Application.Services
             string urlAddress = $"https://bestsimilar.com{moviewUrl}";
             using var doc = await context.OpenAsync(urlAddress);
             var tagsRaw = doc.QuerySelector("div.attr-tag-group-1 span.value").Text();
-            var tags = tagsRaw.Split(',').Select(x => x.Trim('.').Trim()).ToList();
+            var tags = tagsRaw.Split(',').Select(x => x.Trim('.', ' ').Trim()).ToList();
             
             result.Tags = tags;
             

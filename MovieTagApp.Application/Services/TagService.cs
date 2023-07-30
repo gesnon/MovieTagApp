@@ -24,8 +24,7 @@ namespace MovieTagApp.Application.Services
         }
 
         public async Task<int> CreateAsync(string Name)
-        {
-            Name = Name.Trim('.').Trim();
+        {            
             
             Tag tag = new Tag { NameEng = Name, NameRu="" };
             _context.Tags.Add(tag);

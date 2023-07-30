@@ -40,6 +40,7 @@ namespace MovieTagApp.Application.Services
 
             var movie = JsonSerializer.Deserialize<GetByIdResponceDTO>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true,  });
 
+            
 
             MovieDTO result = new MovieDTO
             {
@@ -49,9 +50,17 @@ namespace MovieTagApp.Application.Services
                 NameRu = movie.Name,
                 Poster = movie.Poster["url"],
                 Rating = movie.Rating["kp"].Value,
-                IMDBId = movie.externalId["imdb"].ToString()
+                IMDBId = movie.externalId["imdb"]?.ToString()
               
             };
+
+            if (string.IsNullOrEmpty(result.IMDBId))
+            {
+                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId=id });
+                await _context.SaveChangesAsync(CancellationToken.None);
+                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
+                
+            }
 
             string nameFromOMDB = await _parserService.GetTitleFromIMDB(result.IMDBId);
 
