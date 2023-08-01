@@ -117,6 +117,32 @@ namespace MovieTagApp.Application.Services
             return result;
         }
 
+        public async Task<List<MovieGetDTO>> GetMovieListAsync(List<string> tagNames)
+        {
+            List<int> tags = _context.Tags.Where(_=> tagNames.Contains(_.NameRu)).Select(_ => _.Id).ToList();
+
+
+
+            List<int> movies = _context.Tags.Select(_ => _.Id).ToList();
+            if (tags.Count != 0)
+            {
+                movies = _context.MovieTags.Where(mt => tags.Contains(mt.TagId))
+                .GroupBy(mt => mt.MovieId)
+                .Where(g => g.DistinctBy(_=>_.Tag.NameRu).Count() == tagNames.Count())
+                .Select(g => g.Key).ToList();
+            }
+
+            List<MovieGetDTO> result = new List<MovieGetDTO>();
+
+            foreach (int i in movies)
+            {
+                MovieGetDTO dto = await GetMovieDTOAsync(i);
+                result.Add(dto);
+            }
+
+            return result;
+        }
+
         public async Task<List<MovieGetDTO>> GetMovieListAsync(List<int> tags)
         {
             List<int> movies = _context.Movies.Select(_ => _.Id).ToList(); 

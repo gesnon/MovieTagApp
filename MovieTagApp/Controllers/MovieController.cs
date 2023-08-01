@@ -30,6 +30,10 @@ namespace MovieTagApp.Controllers
             return Ok(await _movieService.GetMovieListAsync(tags));
         }
 
-
+        [HttpGet]
+        public async Task<ActionResult> GetMovieListByTagNameAsync([FromQuery] List<string> tags)
+        {
+            return Ok(await _movieService.GetMovieListAsync(tags));
+        }
     }
 }
