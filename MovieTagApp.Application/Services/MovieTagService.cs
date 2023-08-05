@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MovieTagApp.Application.Common.Exceptions;
 using MovieTagApp.Application.Interfaces;
 using MovieTagApp.Application.Models.MovieTags;
@@ -30,6 +31,38 @@ namespace MovieTagApp.Application.Services
             _parserService = parserService;
             _tagService = tagService;
         }
+
+
+        public async Task AddRuTagsToMovieAsync(int movieId, List<string> ruTags)
+        {
+            Movie movie = _context.Movies.FirstOrDefault(_=>_.Id==movieId);
+
+            List<Tag> tagsFromBase = await _context.Tags.Where(t=>ruTags.Contains(t.NameRu))
+                .GroupBy(_=>_.NameRu).Select(_=>_.First()).ToListAsync();
+
+            foreach(string tag in ruTags)
+            {
+                Tag tagFromDB = tagsFromBase.FirstOrDefault(_ => _.NameRu.ToLower() == tag.ToLower());
+                if (tagFromDB != null)
+                {
+                    _context.MovieTags.Add(new MovieTag { MovieId = movieId, TagId = tagFromDB.Id });
+                   
+                }
+
+                if(tagFromDB == null)
+                {
+                    Tag newTag = new Tag { AreUsefull = true, NameRu=tag, NameEng=""};
+
+                    _context.MovieTags.Add(new MovieTag { MovieId = movieId, Tag=newTag });
+                }
+
+
+                await _context.SaveChangesAsync(CancellationToken.None);
+            }
+        }
+
+
+
 
         public async Task<MovieTagRequest> AddTagsToMovieAsync(string movieName)
         {              

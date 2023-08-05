@@ -46,7 +46,7 @@ namespace MovieTagApp.Application.Services
             {
                 Description = movie.Description,
                 KinopoiskLink = $"https://www.kinopoisk.ru/film/{movie.Id}/",
-                NameEng = movie.AlternativeName,
+                NameEng = movie.AlternativeName??"",
                 NameRu = movie.Name,
                 Poster = movie.Poster["url"],
                 Rating = movie.Rating["kp"].Value,
@@ -56,7 +56,16 @@ namespace MovieTagApp.Application.Services
 
             if (string.IsNullOrEmpty(result.IMDBId))
             {
-                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId=id });
+                _context.Movies.Add(new Movie
+                {
+                    Description = result.Description,
+                    NameEng = result.NameEng,
+                    NameRu = result.NameRu,
+                    Poster = result.Poster,
+                    Rating = result.Rating,
+                    KinopoiskLink = result.KinopoiskLink
+                });
+                
                 await _context.SaveChangesAsync(CancellationToken.None);
                 throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
                 
@@ -65,8 +74,6 @@ namespace MovieTagApp.Application.Services
             string nameFromOMDB = await _parserService.GetTitleFromIMDB(result.IMDBId);
 
             result.NameEng = nameFromOMDB;
-
-
 
 
             // Потом надо убрать поиск имени

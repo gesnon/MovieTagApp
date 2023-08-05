@@ -16,5 +16,13 @@ namespace MovieTagApp.Controllers
         {
             await _movieTagService.AddTagsToMovieAsync(movieName);
         }
+
+        [HttpPost("{movieId:int}")]
+        public async Task AddRuTagsToMovieAsync(int movieId, [FromBody] List<string> tags)
+        {
+            await _movieTagService.AddRuTagsToMovieAsync(movieId, tags);
+        }
+
+        
     }
 }

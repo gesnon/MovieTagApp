@@ -48,7 +48,7 @@ namespace MovieTagApp.Application.Services
                 Id = _.Id,
                 NameEng = _.NameEng,
                 NameRu = _.NameRu
-            }).ToList();
+            }).OrderBy(_=>_.Id).ToList();
 
             return result;
         }

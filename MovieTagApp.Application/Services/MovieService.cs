@@ -25,7 +25,7 @@ namespace MovieTagApp.Application.Services
             IMovieTagAppContext context,
             IMapper mapper,
             IKinopoiskService kinopoiskService,
-            IMovieTagService movieTagService) 
+            IMovieTagService movieTagService)
         {
             _context = context;
             _mapper = mapper;
@@ -36,38 +36,9 @@ namespace MovieTagApp.Application.Services
         public async Task<int> CreateMovieWithKinopoiskAPIAsync(int KinopoiskId)
         {
             MovieDTO dto = await _kinopoiskService.GetMovieFromKinopoisk(KinopoiskId);
-            if (_context.Movies.Any(_=>_.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/"))
+            if (_context.Movies.Any(_ => _.KinopoiskLink == $"https://www.kinopoisk.ru/film/{KinopoiskId}/"))
             {
-               throw new AlreadyInDBException($"Такой фильм уже есть на сайте, его Id ");
-            }           
-
-            // Потом объеденю в один if
-            if (string.IsNullOrEmpty(dto.NameEng))
-            {
-
-                if (_context.MovieWithNoTags.FirstOrDefault(_ => _.KpId == KinopoiskId) != null)
-                {
-                    throw new AlreadyInDBException("Такой фильм уже есть в БД и скоро будет обработан вручную");
-                }
-
-                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId = KinopoiskId });
-                await _context.SaveChangesAsync(CancellationToken.None);
-                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную"); 
-                
-            }
-
-            MovieTagRequest movieTagRequest = await _movieTagService.AddTagsToMovieAsync(dto.NameEng);
-
-            if (movieTagRequest.Status == Status.MovieNotFound)
-            {
-                if (_context.MovieWithNoTags.FirstOrDefault(_ => _.KpId == KinopoiskId) != null)
-                {
-                    throw new AlreadyInDBException("Такой фильм уже есть в БД и скоро будет обработан вручную");
-                }
-
-                _context.MovieWithNoTags.Add(new MovieWithNoTags { KpId = KinopoiskId });
-                await _context.SaveChangesAsync(CancellationToken.None);
-                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
+                throw new AlreadyInDBException($"Такой фильм уже есть на сайте");
             }
 
             Movie movie = new Movie
@@ -77,18 +48,43 @@ namespace MovieTagApp.Application.Services
                 NameEng = dto.NameEng,
                 NameRu = dto.NameRu,
                 Poster = dto.Poster,
-                Rating = dto.Rating,
-                MovieTags = movieTagRequest.MovieTags
-            };
-            _context.Movies.Add(movie);
+                Rating = dto.Rating
 
+            };
+            // Потом объеденю в один if
+            if (string.IsNullOrEmpty(dto.NameEng))
+            {
+                _context.Movies.Add(movie);
+                await _context.SaveChangesAsync(CancellationToken.None);
+
+                return movie.Id;
+
+                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
+
+
+            }
+
+
+            MovieTagRequest movieTagRequest = await _movieTagService.AddTagsToMovieAsync(dto.NameEng);
+
+            if (movieTagRequest.Status == Status.MovieNotFound)
+            {
+                _context.Movies.Add(movie);
+                await _context.SaveChangesAsync(CancellationToken.None);
+
+                return movie.Id;
+
+                throw new NotFoundException("Сайт с тегами не смог найти теги с этому фильму, они будут обработаны в ручную");
+            }
+
+
+            movie.MovieTags = movieTagRequest.MovieTags;
+            _context.Movies.Add(movie);
 
             await _context.SaveChangesAsync(CancellationToken.None);
 
             return movie.Id;
         }
-
-
         public async Task<MovieGetDTO> GetMovieDTOAsync(int id)
         {
             Movie movie = _context.Movies.FirstOrDefault(x => x.Id == id);
@@ -100,7 +96,7 @@ namespace MovieTagApp.Application.Services
             {
                 Description = movie.Description,
                 KinopoiskLink = movie.KinopoiskLink,
-                Id = movie.Id,                
+                Id = movie.Id,
                 NameEng = movie.NameEng,
                 NameRu = movie.NameRu,
                 Poster = movie.Poster,
@@ -108,18 +104,17 @@ namespace MovieTagApp.Application.Services
             };
 
             result.MovieTagsDTOs = _context.MovieTags
-                .Include(_=>_.Tag)
-                .Where(_=>_.MovieId == id)
-                .Select(mt => new MovieTagPreviewDTO { Id= mt.Id, NameEng=mt.Tag.NameEng, NameRu=mt.Tag.NameRu })
+                .Include(_ => _.Tag)
+                .Where(_ => _.MovieId == id)
+                .Select(mt => new MovieTagPreviewDTO { Id = mt.Id, NameEng = mt.Tag.NameEng, NameRu = mt.Tag.NameRu })
                 .ToList();
-             
+
 
             return result;
         }
-
         public async Task<List<MovieGetDTO>> GetMovieListAsync(List<string> tagNames)
         {
-            List<int> tags = _context.Tags.Where(_=> tagNames.Contains(_.NameRu)).Select(_ => _.Id).ToList();
+            List<int> tags = _context.Tags.Where(_ => tagNames.Contains(_.NameRu)).Select(_ => _.Id).ToList();
 
 
 
@@ -128,7 +123,7 @@ namespace MovieTagApp.Application.Services
             {
                 movies = _context.MovieTags.Where(mt => tags.Contains(mt.TagId))
                 .GroupBy(mt => mt.MovieId)
-                .Where(g => g.DistinctBy(_=>_.Tag.NameRu).Count() == tagNames.Count())
+                .Where(g => g.GroupBy(_ => _.Tag.NameRu).Count() == tagNames.Count())
                 .Select(g => g.Key).ToList();
             }
 
@@ -142,17 +137,16 @@ namespace MovieTagApp.Application.Services
 
             return result;
         }
-
         public async Task<List<MovieGetDTO>> GetMovieListAsync(List<int> tags)
         {
-            List<int> movies = _context.Movies.Select(_ => _.Id).ToList(); 
+            List<int> movies = _context.Movies.Select(_ => _.Id).ToList();
             if (tags.Count != 0)
             {
                 movies = _context.MovieTags.Where(mt => tags.Contains(mt.TagId))
                 .GroupBy(mt => mt.MovieId)
                 .Where(g => g.Count() == tags.Count())
                 .Select(g => g.Key).ToList();
-            }            
+            }
 
             List<MovieGetDTO> result = new List<MovieGetDTO>();
 
@@ -161,6 +155,23 @@ namespace MovieTagApp.Application.Services
                 MovieGetDTO dto = await GetMovieDTOAsync(i);
                 result.Add(dto);
             }
+
+            return result;
+        }
+        public async Task<List<MovieGetDTO>> GetMoviesWithNoTags()
+        {
+            List<MovieGetDTO> result = _context.Movies.Where(_ => _.MovieTags.Count == 0)
+                .Select(_ => new MovieGetDTO
+                {
+                    Description = _.Description,
+                    Id=_.Id,
+                    Poster=_.Poster,
+                    NameEng=_.NameEng,
+                    NameRu=_.NameRu,
+                    KinopoiskLink=_.KinopoiskLink,
+                    Rating=_.Rating                    
+                    
+                }).ToList();
 
             return result;
         }

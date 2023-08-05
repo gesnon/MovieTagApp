@@ -10,6 +10,7 @@ namespace MovieTagApp.Application.Models.Tags
 {
     public class TagDTO
     {        
+        public string NameRu { get; set; }
         public string NameEng { get; set; }
         public void Mapping(Profile profile)
         {

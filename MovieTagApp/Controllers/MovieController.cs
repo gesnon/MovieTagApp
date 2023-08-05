@@ -24,16 +24,22 @@ namespace MovieTagApp.Controllers
             return Ok(await _movieService.GetMovieDTOAsync(id));
         }
 
-        [HttpGet]
-        public async Task<ActionResult> GetMovieListAsync([FromQuery] List<int> tags)
-        {
-            return Ok(await _movieService.GetMovieListAsync(tags));
-        }
+        //[HttpGet]
+        //public async Task<ActionResult> GetMovieListAsync([FromQuery] List<int> tags)
+        //{
+        //    return Ok(await _movieService.GetMovieListAsync(tags));
+        //}
 
         [HttpGet]
         public async Task<ActionResult> GetMovieListByTagNameAsync([FromQuery] List<string> tags)
         {
             return Ok(await _movieService.GetMovieListAsync(tags));
+        }
+
+        [HttpGet("no-tags")]
+        public async Task<ActionResult> GetMoviesWithNoTags()
+        {
+            return Ok(await _movieService.GetMoviesWithNoTags());
         }
     }
 }
