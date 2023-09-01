@@ -1,0 +1,21 @@
+.rightFieldContainer{
+    height: 500px;
+    width: 30%;
+    border: 1px;
+    border-style: solid;
+    border-color: black;
+    border-radius: 10px;
+    background-color: burlywood;
+}
+.usefullTagsContainer{
+    width: auto;
+    height: 200px;
+    background-color: cornflowerblue;
+}
+.searchTagsContainer{
+    width: auto;
+    height: 200px;
+    background-color: rgb(173, 175, 179);
+
+    display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+}

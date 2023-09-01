@@ -34,7 +34,7 @@ namespace MovieTagApp.Application.Services
             return tag.Id;
         }
 
-        public async Task<List<TagGetDTO>> GetTagsByNameAsync(string? Name)
+        public async Task<List<TagGetDTO>> GetTagsDTOByNameAsync(string? Name)
         {
             var query = _context.Tags.AsQueryable();
 
@@ -51,6 +51,42 @@ namespace MovieTagApp.Application.Services
             }).OrderBy(_=>_.Id).ToList();
 
             return result;
+        }
+
+        public async Task<List<string>> GetTagsByNameAsync(string? Name)
+        {
+            var query = _context.Tags.AsQueryable();
+
+            if (!string.IsNullOrEmpty(Name))
+            {
+                query = query.Where(x => x.NameRu.ToLower().Contains(Name.ToLower()));
+            }
+
+            List<string> result = query.Select(_ => _.NameRu).OrderBy(_ => _).Distinct().ToList();
+
+            return result;
+        }
+
+        public async Task DeleteDublicates()
+        {
+            var query = _context.Tags.AsQueryable().GroupBy(_=>_.NameEng).ToList();
+
+            foreach (var group in query)
+            {   
+                List<Tag> tags = group.ToList();
+                List<int> tagsIds = tags.Select(_ => _.Id).ToList();
+
+                List<MovieTag> movieTags = _context.MovieTags.Where(_ => tagsIds.Contains(_.TagId)).ToList();
+
+                foreach(MovieTag mt in movieTags)
+                {
+                    mt.TagId = tagsIds[0];
+                }
+
+                _context.Tags.RemoveRange(tags.Skip(1));
+
+                await _context.SaveChangesAsync(CancellationToken.None);
+            }
         }
     }
     

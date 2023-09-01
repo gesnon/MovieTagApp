@@ -11,6 +11,10 @@ namespace MovieTagApp.Application.Interfaces
     {
         public Task<int> CreateAsync(string Name);
 
-        public Task <List<TagGetDTO>> GetTagsByNameAsync(string? Name);
+        public Task <List<TagGetDTO>> GetTagsDTOByNameAsync(string? Name);
+
+        public Task <List<string>> GetTagsByNameAsync(string? Name);
+
+        public Task DeleteDublicates();
     }
 }

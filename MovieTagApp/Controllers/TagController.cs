@@ -4,9 +4,9 @@ using MovieTagApp.Application.Models.Tags;
 
 namespace MovieTagApp.Controllers
 {
-    public class TagController: BaseController
+    public class TagController : BaseController
     {
-        
+
 
         private readonly ITagService _tagService;
 
@@ -15,11 +15,24 @@ namespace MovieTagApp.Controllers
             this._tagService = _tagService;
         }
 
+        [HttpGet("Dev")]
+        public async Task<ActionResult> GetTagsDTOByName([FromQuery] string? Name)
+        {
+            return Ok(await _tagService.GetTagsDTOByNameAsync(Name));
+        }
+
         [HttpGet]
-        public async Task<ActionResult> GetTagsByName([FromQuery]string? Name)
+        public async Task<ActionResult> GetTagsByName([FromQuery] string? Name)
         {
             return Ok(await _tagService.GetTagsByNameAsync(Name));
         }
 
+        [HttpDelete]
+        public async Task<ActionResult> DeleteDublicates()
+        {
+            await _tagService.DeleteDublicates();
+
+            return Ok();
+        }
     }
 }
