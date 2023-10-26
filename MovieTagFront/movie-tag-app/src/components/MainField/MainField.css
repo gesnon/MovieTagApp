@@ -1,8 +1,9 @@
 .mainFieldContainer{
   padding: 2% 2% 2% 5%;
-width: auto;
-  height: 700px;
+  width: auto;
+  height: 900px;
   display: flex;
   justify-content: space-between; 
   background-color: rgb(119, 148, 148);
+  
 }

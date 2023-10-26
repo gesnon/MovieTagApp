@@ -1,0 +1,48 @@
+
+#tag_cont{
+    position: relative;
+    margin: 10px;
+    float:left;   
+    border: 2px solid rgb(0, 0, 0);
+    height: 30px;    
+    display: grid;
+ 
+  }
+  
+  .tagDeleteButton{
+    display: block;
+    position: absolute;
+    float: left;
+    width: 30px;
+    height: 0;
+    cursor: pointer;  
+  }
+  .tagDeleteButton:nth-child(1){
+    border-left: 0px solid transparent;
+    border-top: 30px solid #c74523;
+    right: 0px;
+    z-index: 2;
+    opacity: 60%;
+  }
+  .tagDeleteButton:nth-child(1):hover{
+    border-top: 30px solid rgb(214, 70, 70);
+    color: #c74523;
+    opacity: 100%;
+  }
+  
+  .btn:nth-child(1):before{
+    /*border-right: 2px solid #fff;*/
+    content: "";
+    height: 40px;
+    position: absolute;
+    right: 150px;
+    top: -35px;
+    transform: rotate(-34deg) translateZ(0px);
+  }
+  .tagName{   
+     margin-left: 15px;
+     margin-right: 15px;
+     margin-top: auto;
+     margin-bottom: auto;
+  }
+  
