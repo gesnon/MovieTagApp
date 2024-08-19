@@ -21,6 +21,8 @@ namespace MovieTagApp.Application.Services
             this._context = _context;
         }
 
+        //тест
+
         // Надо перенести токен в appsettings
         string token = "Z4JX270-H6S448M-NEMBZTP-7N0HBD5";
 
